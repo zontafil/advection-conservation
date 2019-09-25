@@ -4,6 +4,7 @@ from scipy.spatial import Delaunay
 import matplotlib.pyplot as plt
 from scipy.spatial import Voronoi, voronoi_plot_2d
 
+# generate a triangular mesh with base b and nx, ny points
 def generateMesh(b, nx, ny):
     points = np.array([[0, 0]])
 
