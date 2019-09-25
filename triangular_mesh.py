@@ -13,6 +13,6 @@ def generateMesh(b, nx, ny):
             if (i==0) and (j == 0):
                 continue
             offset = 0 if (i % 2) == 0 else (b/2)
-            points = np.append(points, [[i, j + offset]], 0)
+            points = np.append(points, [[i*b, j*b + offset]], 0)
 
     return points
