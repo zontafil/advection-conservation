@@ -1,10 +1,8 @@
 import numpy as np
 from singleParticleIntegrator import Particle
-# import scipy
 # import matplotlib.pyplot as plt
+# from scipy.spatial import voronoi_plot_2d
 # from triangular_mesh import generateMesh
-# from scipy.spatial import Delaunay
-# from scipy.spatial import Voronoi, voronoi_plot_2d
 
 k = 1.0
 m = 1.0
@@ -14,8 +12,8 @@ h = 1E+2
 
 # initial condition of the particle
 # FIXME: generalize to n particles
-x0 = np.array([0,0])
-x1 = np.array([2,1])
+x0 = np.array([0, 0])
+x1 = np.array([2, 1])
 
 # inizialize the particle
 particle = Particle(x0, x1, m, k, h)
@@ -35,11 +33,10 @@ for i in range(nsteps):
     out.write(str(i) + ' ' + str(dE) + " ")
     np.savetxt(out, particle.x1, newline=' ')
     out.write("\n")
-    
-# points = generateMesh(5, 10, 10)
-# tri = Delaunay(points)
-# plt.triplot(points[:,0], points[:,1], tri.simplices.copy())
-# plt.plot(points[:,0], points[:,1], 'o')
-# vor = Voronoi(points)
-# voronoi_plot_2d(vor)
+
+# mesh = generateMesh(5, 10, 10)
+# plt.triplot(mesh.delaunay.points[:, 0], mesh.delaunay.points[:, 1],
+#             mesh.delaunay.simplices.copy())
+# plt.plot(mesh.delaunay.points[:, 0], mesh.delaunay.points[:, 1], 'o')
+# voronoi_plot_2d(mesh.voronoi)
 # plt.show()
