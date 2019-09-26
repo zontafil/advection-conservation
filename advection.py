@@ -2,7 +2,7 @@ import numpy as np
 from singleParticleIntegrator import Particle
 # import matplotlib.pyplot as plt
 # from scipy.spatial import voronoi_plot_2d
-from triangular_mesh import generateMesh
+from mesh import EquilateralTriangularMesh
 from particleMeshDeposit import ParticlesMeshDeposit
 
 k = 1.0
@@ -24,7 +24,7 @@ out = open("out.txt", "w+")
 # compute initial energy
 E0 = particle.energy()
 
-mesh = generateMesh(5, 4, 4)
+mesh = EquilateralTriangularMesh(0, 2, 0, 2, 0.4)
 particleDeposit = ParticlesMeshDeposit(mesh)
 
 for i in range(nsteps):

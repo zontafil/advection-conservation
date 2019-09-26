@@ -1,4 +1,4 @@
-from triangular_mesh import Mesh
+from mesh import Mesh
 from singleParticleIntegrator import Particle
 
 

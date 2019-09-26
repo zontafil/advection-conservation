@@ -1,4 +1,5 @@
 import numpy as np
+import math
 from scipy.spatial import Voronoi, Delaunay
 from mesh_utils import inside_convex_polygon
 from typing import List
@@ -13,15 +14,17 @@ class Mesh:
         voronoiNeighbors {list} -- list of neighbors for each voronoi region
         voronoiRegions {list} -- list of voronoiregions, cleand from the python library
     """
-    def __init__(self, delaunay: Delaunay, voronoi: Voronoi):
+    def __init__(self, points: np.array):
         """
 
         Arguments:
-            delaunay {scipy.spatial.Delaunay} -- delaunay mesh
-            voronoi {scipy.spatial.Voronoi} -- voronoi mesh
+            points {np.array} -- points which define the mesh
         """
-        self.delaunay = delaunay
-        self.voronoi = voronoi
+        self.delaunay = Delaunay(points)
+        self.voronoi = Voronoi(points)
+
+        self.buildVoronoiRegions()
+        self.buildVoronoiNeighborsIndex()
 
     def isPointInsideVoronoiRegion(self, point: List[float],
                                    regionIdx: int):
@@ -99,30 +102,33 @@ class Mesh:
         return ret
 
 
-def generateMesh(b, nx, ny):
-    """Generate a equilateral triangular mesh and its dual
+class EquilateralTriangularMesh(Mesh):
+    def __init__(self, x0, x1, y0, y1, b):
+        """Generate a equilateral triangular mesh and its dual
 
-    Arguments:
-        b {int} -- base length of each triangle
-        nx {int} -- number of points in the x dimension
-        ny {int} -- number of points in the y dimension
+        Arguments:
+            x0 {float} -- lower x limit of the mesh
+            x1 {float} -- upper x limit of the mesh
+            y0 {float} -- lower y limit of the mesh
+            y1 {float} -- upper y limit of the mesh
+            b {float} -- base value of the triangles
 
-    Returns:
-        Mesh -- return the primary (Delaunay) and dual (Voronoi) meshes
-    """
-    points = np.array([[0, 0]])
+        Returns:
+            Mesh -- return the primary (Delaunay) and dual (Voronoi) meshes
+        """
+        points = np.array([[]])
 
-    for i in range(nx):
-        for j in range(ny):
-            # FIXME - remove this ugly check
-            if (i == 0) and (j == 0):
-                continue
-            offset = 0 if (i % 2) == 0 else (b/2)
-            points = np.append(points, [[i*b, j*b + offset]], 0)
+        npAxis = 1
+        i = 0
+        px = x0
+        py = y0
+        while (py < y1):
+            while (px < x1):
+                points = np.append(points, [[px, py]], npAxis)
+                npAxis = 0
+                px += b
+            i = i + 1
+            px = x0 if (i % 2) == 0 else x0 + (b/2)
+            py = py + b * math.sqrt(3) / 2.0
 
-    mesh = Mesh(Delaunay(points), Voronoi(points))
-
-    # precompute useful stuff, i.e. voronoi neighbors index
-    mesh.buildVoronoiRegions()
-    mesh.buildVoronoiNeighborsIndex()
-    return mesh
+        super().__init__(points)
