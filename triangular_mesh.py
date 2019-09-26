@@ -1,5 +1,7 @@
 import numpy as np
 from scipy.spatial import Voronoi, Delaunay
+from mesh_utils import inside_convex_polygon
+from typing import List
 
 
 class Mesh:
@@ -9,6 +11,7 @@ class Mesh:
         delaunay {scipy.spatial.Delaunay} -- delaunay mesh
         voronoi {scipy.spatial.Voronoi} -- voronoi mesh
         voronoiNeighbors {list} -- list of neighbors for each voronoi region
+        voronoiRegions {list} -- list of voronoiregions, cleand from the python library
     """
     def __init__(self, delaunay: Delaunay, voronoi: Voronoi):
         """
@@ -20,14 +23,39 @@ class Mesh:
         self.delaunay = delaunay
         self.voronoi = voronoi
 
+    def isPointInsideVoronoiRegion(self, point: List[float],
+                                   regionIdx: int):
+        """Check if a point is inside a given voronoi region
+
+        Arguments:
+            point {list} -- coordinates of the point
+            regionIdx {int} -- index of the voronoi region
+
+        Returns:
+            bool -- True if the point is inside the region
+        """
+        # find region's vertices coordinates
+        coordinates = []
+        for i in self.voronoiRegions[regionIdx]:
+            coordinates.append(self.voronoi.vertices[i])
+        return inside_convex_polygon(point, coordinates)
+
+    def buildVoronoiRegions(self):
+        """Clean the voronoi regions array and get rid of void elements
+        """
+        self.voronoiRegions = []
+        for i in self.voronoi.regions:
+            if (len(i) > 0):
+                self.voronoiRegions.append(i)
+
     def buildVoronoiNeighborsIndex(self):
         """Build An array of neighbors for each voronoi region
            populate the self.voronoiNeighbors array
         """
-        self.voronoiNeighbors = [None]*len(self.voronoi.regions)
-        for i, region_i in enumerate(self.voronoi.regions):
+        self.voronoiNeighbors = [None]*len(self.voronoiRegions)
+        for i, region_i in enumerate(self.voronoiRegions):
             self.voronoiNeighbors[i] = []
-            for j, region_j in enumerate(self.voronoi.regions):
+            for j, region_j in enumerate(self.voronoiRegions):
                 if (i == j):
                     continue
                 # check if region i and j are neighbors.
@@ -95,5 +123,6 @@ def generateMesh(b, nx, ny):
     mesh = Mesh(Delaunay(points), Voronoi(points))
 
     # precompute useful stuff, i.e. voronoi neighbors index
+    mesh.buildVoronoiRegions()
     mesh.buildVoronoiNeighborsIndex()
     return mesh
