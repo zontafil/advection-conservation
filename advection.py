@@ -2,11 +2,12 @@ import numpy as np
 from singleParticleIntegrator import Particle
 # import matplotlib.pyplot as plt
 # from scipy.spatial import voronoi_plot_2d
-# from triangular_mesh import generateMesh
+from triangular_mesh import generateMesh
+from particleMeshDeposit import ParticlesMeshDeposit
 
 k = 1.0
 m = 1.0
-nsteps = 1
+nsteps = 100
 h = 1E+2
 # nparticles = 10
 
@@ -23,6 +24,9 @@ out = open("out.txt", "w+")
 # compute initial energy
 E0 = particle.energy()
 
+mesh = generateMesh(5, 4, 4)
+particleDeposit = ParticlesMeshDeposit(mesh)
+
 for i in range(nsteps):
     # evolve the particle in time
     particle.particlePush()
@@ -33,8 +37,8 @@ for i in range(nsteps):
     out.write(str(i) + ' ' + str(dE) + " ")
     np.savetxt(out, particle.x1, newline=' ')
     out.write("\n")
+    # print(str(particle.x1) + " " + str(particleDeposit.addParticle(particle)))
 
-# mesh = generateMesh(5, 10, 10)
 # plt.triplot(mesh.delaunay.points[:, 0], mesh.delaunay.points[:, 1],
 #             mesh.delaunay.simplices.copy())
 # plt.plot(mesh.delaunay.points[:, 0], mesh.delaunay.points[:, 1], 'o')
