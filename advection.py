@@ -24,7 +24,7 @@ out = open("out.txt", "w+")
 # compute initial energy
 E0 = particle.energy()
 
-mesh = EquilateralTriangularMesh(0, 2, 0, 2, 0.4)
+mesh = EquilateralTriangularMesh(-100, 100, -100, 100, 10)
 particleDeposit = ParticlesMeshDeposit(mesh)
 
 for i in range(nsteps):
@@ -37,7 +37,7 @@ for i in range(nsteps):
     out.write(str(i) + ' ' + str(dE) + " ")
     np.savetxt(out, particle.x1, newline=' ')
     out.write("\n")
-    # print(str(particle.x1) + " " + str(particleDeposit.addParticle(particle)))
+    print(str(particle.x1) + " " + str(particleDeposit.addParticle(particle)))
 
 # plt.triplot(mesh.delaunay.points[:, 0], mesh.delaunay.points[:, 1],
 #             mesh.delaunay.simplices.copy())
