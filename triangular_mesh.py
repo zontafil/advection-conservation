@@ -10,7 +10,7 @@ class Mesh:
         voronoi {scipy.spatial.Voronoi} -- voronoi mesh
         voronoiNeighbors {list} -- list of neighbors for each voronoi region
     """
-    def __init__(self, delaunay, voronoi):
+    def __init__(self, delaunay: Delaunay, voronoi: Voronoi):
         """
 
         Arguments:
