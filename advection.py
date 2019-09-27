@@ -7,8 +7,8 @@ from particleMeshDeposit import ParticlesMeshDeposit
 
 k = 1.0
 m = 1.0
-nsteps = 100
-h = 1E+2
+nsteps = 1000
+h = 1E+1
 # nparticles = 10
 
 # initial condition of the particle
@@ -26,6 +26,7 @@ E0 = particle.energy()
 
 mesh = EquilateralTriangularMesh(-100, 100, -100, 100, 10)
 particleDeposit = ParticlesMeshDeposit(mesh)
+lastParticlePosition = 0
 
 for i in range(nsteps):
     # evolve the particle in time
@@ -37,7 +38,8 @@ for i in range(nsteps):
     out.write(str(i) + ' ' + str(dE) + " ")
     np.savetxt(out, particle.x1, newline=' ')
     out.write("\n")
-    print(str(particle.x1) + " " + str(particleDeposit.addParticle(particle)))
+
+    lastParticlePosition = particleDeposit.addParticle(particle, lastParticlePosition)
 
 # plt.triplot(mesh.delaunay.points[:, 0], mesh.delaunay.points[:, 1],
 #             mesh.delaunay.simplices.copy())
