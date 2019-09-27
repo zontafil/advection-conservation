@@ -13,6 +13,7 @@ class Mesh:
         voronoi {scipy.spatial.Voronoi} -- voronoi mesh
         voronoiNeighbors {list} -- list of neighbors for each voronoi region
         voronoiRegions {list} -- list of voronoiregions, cleand from the python library
+        voronoiRegionsCenter {list} -- list of center point for each region
     """
     def __init__(self, points: np.array):
         """
@@ -45,11 +46,22 @@ class Mesh:
 
     def buildVoronoiRegions(self):
         """Clean the voronoi regions array and get rid of void elements
+            Build the center of the region for each region
         """
         self.voronoiRegions = []
-        for i in self.voronoi.regions:
-            if (len(i) > 0):
-                self.voronoiRegions.append(i)
+        self.voronoiRegionsCenter = []
+
+        # find the center of each region
+        regionsCenterTmp = [None]*len(self.voronoi.regions)
+        for point, region in enumerate(self.voronoi.point_region):
+            regionsCenterTmp[region] = point
+
+        for i, region in enumerate(self.voronoi.regions):
+            if (len(region) > 0):
+                self.voronoiRegions.append(region)
+
+                # build a cleaner array of regionsCenter
+                self.voronoiRegionsCenter.append(regionsCenterTmp[i])
 
     def buildVoronoiNeighborsIndex(self):
         """Build An array of neighbors for each voronoi region
