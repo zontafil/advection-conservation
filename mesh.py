@@ -14,6 +14,8 @@ class Mesh:
         voronoiNeighbors {list} -- list of neighbors for each voronoi region
         voronoiRegions {list} -- list of voronoiregions, cleand from the python library
         voronoiRegionsCenter {list} -- list of center point for each region
+        vertexRegions {list} -- map from voronoi vertex to the 3 regions that include it (DEPRECATED)
+        vertexPoints {list} -- map from voronoi vertex to the 3 primary points including it (DEPRECATED)
     """
     def __init__(self, points: np.array):
         """
@@ -26,6 +28,21 @@ class Mesh:
 
         self.buildVoronoiRegions()
         self.buildVoronoiNeighborsIndex()
+
+    def areaSimplex(self, simplexIndex):
+        """Compute the area of a delaunay simplex
+
+        Arguments:
+            simplexIndex {int} -- index of the simplex
+
+        Returns:
+            float -- area of the simplex
+        """
+        simplex = self.delaunay.simplices[simplexIndex]
+        a = self.delaunay.points[simplex[0]]
+        b = self.delaunay.points[simplex[1]]
+        c = self.delaunay.points[simplex[2]]
+        return abs(np.cross(np.subtract(a, b), np.subtract(a, c)))
 
     def isPointInsideVoronoiRegion(self, point: List[float],
                                    regionIdx: int):
@@ -62,6 +79,31 @@ class Mesh:
 
                 # build a cleaner array of regionsCenter
                 self.voronoiRegionsCenter.append(regionsCenterTmp[i])
+
+    def buildVerticesToSimpleces(self):
+        """Set of DEPRECATED methods (not used). Useful to build some index/map
+            between vertices/simplices/region etc
+        """
+        # build a vertex -> 3 regions map
+        self.vertexRegions = [([]) for i in range(len(self.voronoi.vertices))]
+        for i, region in enumerate(self.voronoiRegions):
+            for vertex in region:
+                self.vertexRegions[vertex].append(i)
+
+        # build a vertex -> 3 points map
+        self.vertexPoints = [([]) for i in range(len(self.voronoi.vertices))]
+        for vertex, regions in enumerate(self.vertexRegions):
+            for region in regions:
+                self.vertexPoints[vertex].append(self.voronoiRegionsCenter[region])
+
+        # build a vertex -> simplex map
+        self.vertexSimplex = [None]*len(self.voronoi.vertices)
+        for vertex, points_a in enumerate(self.vertexPoints):
+            if len(points_a) == 3:
+                for simplex, points_b in enumerate(self.delaunay.simplices):
+                    if (points_a[0] in points_b
+                       and points_a[1] in points_b and points_a[2] in points_b):
+                        self.vertexSimplex[vertex] = simplex
 
     def buildVoronoiNeighborsIndex(self):
         """Build An array of neighbors for each voronoi region
@@ -106,11 +148,9 @@ class Mesh:
         for i in a:
             if i == -1:
                 continue
-            for j in b:
-                if j == -1:
-                    continue
-                if i == j:
-                    ret = True
+            if i in b:
+                ret = True
+                break
         return ret
 
 

@@ -25,10 +25,14 @@ out = open("out.txt", "w+")
 E0 = particle.energy()
 
 mesh = EquilateralTriangularMesh(-100, 100, -100, 100, 10)
-particleDeposit = ParticlesMeshDeposit(mesh)
 lastParticlePosition = 0
 
 for i in range(nsteps):
+    print(f"Timestep {i}")
+
+    # rebuild the density function at each time step
+    particleDeposit = ParticlesMeshDeposit(mesh)
+
     # evolve the particle in time
     particle.particlePush()
 

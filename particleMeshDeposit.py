@@ -22,11 +22,8 @@ def computeBarycentric(p: list, Q: list):
         w[j] = (cotangent(p, qj, Q[prev]) + cotangent(p, qj, Q[next])) / np.linalg.norm(np.subtract(p, Q[j])**2)
         weightSum += w[j]
 
-    # Normalize the weights
-    for weight in w:
-        w[j] /= weightSum
-
-    return w
+    # normalize by the area of the polygon
+    return np.divide(w, weightSum)
 
 
 def cotangent(a: list, b: list, c: list):
@@ -51,7 +48,6 @@ class ParticlesMeshDeposit:
     Attributes:
         mesh
         f -- distribution function
-        voronoiWeights -- Weights of the particles in the dual mesh
 
     """
     def __init__(self, mesh: Mesh):
@@ -61,8 +57,7 @@ class ParticlesMeshDeposit:
             mesh {Mesh}
         """
         self.mesh = mesh
-        self.f: list(float) = [0]*len(mesh.delaunay.points)
-        self.voronoiWeights: list(float) = [0]*len(mesh.voronoi.vertices)
+        self.f: list(float) = [0]*len(mesh.delaunay.simplices)
 
     def addParticle(self, particle: Particle, lastKnownVoronoiPosition=0):
         """Add a particle and deposit it to the dual mesh and to the distribution function
@@ -93,11 +88,16 @@ class ParticlesMeshDeposit:
         # deposit particle to voronoi mesh
         w = computeBarycentric(particle.x1, coordinates)
         for i, weight in enumerate(w):
+            # important: f lives in the primary mesh (i.e. triangles = simplices)
+            # but for the python voronoi library ->
+            # index(voronoi_vertex) = index(delaunay_simplex)
             vertexIndex = self.mesh.voronoiRegions[position][i]
-            self.voronoiWeights[vertexIndex] = self.voronoiWeights[vertexIndex] + w[i]
 
-        # update distribution function
-        # TODO: precompute center of the voronoi regions
+            # find the area of the simplex, the weight must be normalized with the areas
+            area = self.mesh.areaSimplex(vertexIndex)
+
+            # update the distribution function
+            self.f[vertexIndex] = self.f[vertexIndex] + weight / area
 
         return position
 
