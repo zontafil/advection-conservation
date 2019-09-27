@@ -1,5 +1,48 @@
 from mesh import Mesh
 from singleParticleIntegrator import Particle
+import numpy as np
+
+
+def computeBarycentric(p: list, Q: list):
+    """Compute the barycentric weights for a point p in an n-gon Q
+        Assumes p is strictly within Q and the vertices qj of Q are ordered
+
+    Arguments:
+        p {list} -- coordinates of the point inside the polygon
+        Q {list} -- coordinates of the polygon vertices
+    Returns:
+        [list] -- weights for each polygon's vertex
+    """
+    n = len(Q)
+    w = [None]*len(Q)
+    weightSum = 0
+    for j, qj in enumerate(Q):
+        prev = (j + n - 1) % n
+        next = (j + 1) % n
+        w[j] = (cotangent(p, qj, Q[prev]) + cotangent(p, qj, Q[next])) / np.linalg.norm(np.subtract(p, Q[j])**2)
+        weightSum += w[j]
+
+    # Normalize the weights
+    for weight in w:
+        w[j] /= weightSum
+
+    return w
+
+
+def cotangent(a: list, b: list, c: list):
+    """Compute the cotangent of the non-degenerate triangle abc at vertex b
+
+    Arguments:
+        a {list} -- coordinates of the triangle's point a
+        b {list} -- coordinates of the triangle's point b
+        c {list} -- coordinates of the triangle's point c
+
+    Returns:
+        [float]
+    """
+    ba = np.subtract(a, b)
+    bc = np.subtract(c, b)
+    return (np.dot(bc, ba) / abs(np.cross(bc, ba)))
 
 
 class ParticlesMeshDeposit:
@@ -18,8 +61,8 @@ class ParticlesMeshDeposit:
             mesh {Mesh}
         """
         self.mesh = mesh
-        self.f: list(float) = [None]*len(mesh.delaunay.points)
-        self.voronoiWeights: list(float) = [None]*len(mesh.voronoi.vertices)
+        self.f: list(float) = [0]*len(mesh.delaunay.points)
+        self.voronoiWeights: list(float) = [0]*len(mesh.voronoi.vertices)
 
     def addParticle(self, particle: Particle, lastKnownVoronoiPosition=0):
         """Add a particle and deposit it to the dual mesh and to the distribution function
@@ -42,7 +85,19 @@ class ParticlesMeshDeposit:
         if position is None:
             raise Exception(f"The particle is outside the mesh! {particle.x1}")
 
-        # TODO
+        # find region vertices coordinates
+        coordinates = []
+        for i in self.mesh.voronoiRegions[position]:
+            coordinates.append(self.mesh.voronoi.vertices[i])
+
+        # deposit particle to voronoi mesh
+        w = computeBarycentric(particle.x1, coordinates)
+        for i, weight in enumerate(w):
+            vertexIndex = self.mesh.voronoiRegions[position][i]
+            self.voronoiWeights[vertexIndex] = self.voronoiWeights[vertexIndex] + w[i]
+
+        # update distribution function
+        # TODO: precompute center of the voronoi regions
 
         return position
 
