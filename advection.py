@@ -4,28 +4,33 @@ from singleParticleIntegrator import Particle
 # from scipy.spatial import voronoi_plot_2d
 from mesh import EquilateralTriangularMesh
 from particleMeshDeposit import ParticlesMeshDeposit
+import random
 
 k = 1.0
 m = 1.0
 nsteps = 1000
 h = 1E+1
-# nparticles = 10
+nparticles = 10
 
-# initial condition of the particle
-# FIXME: generalize to n particles
-x0 = np.array([0, 0])
-x1 = np.array([2, 1])
+particles = []
+lastParticlesPosition = [0]*nparticles
+for i in range(nparticles):
+    # initial condition of the particle
+    x0 = np.array([random.uniform(-2, 2), random.uniform(-2, 2)])
+    x1 = np.array([random.uniform(-2, 2), random.uniform(-2, 2)])
 
-# inizialize the particle
-particle = Particle(x0, x1, m, k, h)
+    particle = Particle(x0, x1, m, k, h)
+    particles.append(particle)
 
 out = open("out.txt", "w+")
 
-# compute initial energy
-E0 = particle.energy()
-
-mesh = EquilateralTriangularMesh(-100, 100, -100, 100, 10)
-lastParticlePosition = 0
+print("Inizializing mesh...")
+mesh = EquilateralTriangularMesh(-10, 10, -10, 10, 1)
+print("===============")
+print(f"Mesh size: {len(mesh.delaunay.simplices)} triangles")
+print(f"N Particles {nparticles}")
+print(f"N timesteps {nsteps}")
+print("===============\n")
 
 for i in range(nsteps):
     print(f"Timestep {i}")
@@ -33,18 +38,19 @@ for i in range(nsteps):
     # rebuild the density function at each time step
     particleDeposit = ParticlesMeshDeposit(mesh)
 
-    # evolve the particle in time
-    particle.particlePush()
+    # evolve the particles in time
+    for i in range(nparticles):
+        particle = particles[i]
+        particle.particlePush()
 
-    # energy error
-    dE = (particle.energy() - E0) / E0
+        lastParticlesPosition[i] = particleDeposit.addParticle(particle, lastParticlesPosition[i])
 
-    out.write(str(i) + ' ' + str(dE) + " ")
-    np.savetxt(out, particle.x1, newline=' ')
-    out.write("\n")
+    # WRITE TO FILE (TRAJECTORY)
+    # out.write(str(i) + ' ' + str(dE) + " ")
+    # np.savetxt(out, particle.x1, newline=' ')
+    # out.write("\n")
 
-    lastParticlePosition = particleDeposit.addParticle(particle, lastParticlePosition)
-
+# PLOT MESH
 # plt.triplot(mesh.delaunay.points[:, 0], mesh.delaunay.points[:, 1],
 #             mesh.delaunay.simplices.copy())
 # plt.plot(mesh.delaunay.points[:, 0], mesh.delaunay.points[:, 1], 'o')
