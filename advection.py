@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import numpy as np
 from singleParticleIntegrator import Particle
 # import matplotlib.pyplot as plt
@@ -27,13 +28,13 @@ out = open("out.txt", "w+")
 print("Inizializing mesh...")
 mesh = EquilateralTriangularMesh(-10, 10, -10, 10, 1)
 print("===============")
-print(f"Mesh size: {len(mesh.delaunay.simplices)} triangles")
-print(f"N Particles {nparticles}")
-print(f"N timesteps {nsteps}")
+print("Mesh size: " + str(len(mesh.delaunay.simplices)) + " triangles")
+print("N Particles " + str(nparticles))
+print("N timesteps " + str(nsteps))
 print("===============\n")
 
 for i in range(nsteps):
-    print(f"Timestep {i}")
+    print("Timestep " + str(i))
 
     # rebuild the density function at each time step
     particleDeposit = ParticlesMeshDeposit(mesh)

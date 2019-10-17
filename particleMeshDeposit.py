@@ -57,7 +57,7 @@ class ParticlesMeshDeposit:
             mesh {Mesh}
         """
         self.mesh = mesh
-        self.f: list(float) = [0]*len(mesh.delaunay.simplices)
+        self.f = [0]*len(mesh.delaunay.simplices)
 
     def addParticle(self, particle: Particle, lastKnownVoronoiPosition=0):
         """Add a particle and deposit it to the dual mesh and to the distribution function
@@ -78,7 +78,7 @@ class ParticlesMeshDeposit:
         position = self.findParticleVoronoiPosition(particle, lastKnownVoronoiPosition)
 
         if position is None:
-            raise Exception(f"The particle is outside the mesh! {particle.x1}")
+            raise Exception("The particle is outside the mesh!" + str(particle.x1))
 
         # find region vertices coordinates
         coordinates = []
@@ -114,12 +114,12 @@ class ParticlesMeshDeposit:
         Returns:
             int -- Index of the voronoi regions in which the particle
         """
-        checkedRegions: list(int) = []
+        checkedRegions = []
 
         # start searching from the particle's last known position
-        regionsToCheck: list(int) = [lastKnownVoronoiPosition]
+        regionsToCheck = [lastKnownVoronoiPosition]
 
-        position: int = None
+        position = None
         while (len(checkedRegions) < len(self.mesh.voronoiRegions)
                and position is None):
 
